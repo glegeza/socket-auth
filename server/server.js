@@ -12,6 +12,7 @@ const io = socketIO(server);
 
 const mongoose = require('./services/mongoose');
 const passport = require('./services/passport');
+const routes = require('./routes');
 
 // Middleware
 const store = new MongoDBStore({
@@ -32,6 +33,8 @@ app.use(require('express-session')({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(routes);
 
 server.listen(config.serverPort, () => {
     console.log(`Server in ${process.env.NODE_ENV} environment`);
