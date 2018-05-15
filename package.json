@@ -19,5 +19,8 @@
     "eslint-config-google": "^0.9.1",
     "eslint-plugin-babel": "^5.1.0",
     "eslint-plugin-react": "^7.8.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.10"
   }
 }
