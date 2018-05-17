@@ -36,6 +36,10 @@ app.use(passport.session());
 
 app.use(routes);
 
+io.on('connection', (socket) => {
+    console.log('new connection');
+});
+
 server.listen(config.serverPort, () => {
     console.log(`Server in ${process.env.NODE_ENV} environment`);
     console.log(`Server listening on port ${config.serverPort}`);
