@@ -44,7 +44,14 @@ const userSchema = new Schema({
 userSchema.methods.toJSON = function() {
     const user = this;
     const userObj = user.toObject();
-    return _.pick(userObj, ['email', 'firstName', 'lastName']);
+    const reduced = _.pick(userObj, ['email', 'firstName', 'lastName']);
+    return {
+        ...reduced,
+        google: userObj.google && userObj.google !== '' ? true : false,
+        twitter: userObj.twitter && userObj.twitter !== '' ? true : false,
+        github: userObj.github && userObj.github !== '' ? true : false,
+        local: userObj.password && userObj.password !== '' ? true : false,
+    };
 };
 
 userSchema.statics.findByCredentials = function(email, password) {
