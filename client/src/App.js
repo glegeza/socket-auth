@@ -9,9 +9,17 @@ class App extends Component {
     this.state = {
       socket: openSocket('http://localhost:5000'),
     };
+
+    let self = this;
+    this.state.socket.on('auth', (auth) => {
+      self.setState({...self.state, auth});
+    });
   }
 
   render() {
+    if (this.state.auth) {
+      console.log(this.state.auth);
+    }
     return (
       <div className="App">
         <header className="App-header">

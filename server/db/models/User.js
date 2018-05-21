@@ -41,6 +41,12 @@ const userSchema = new Schema({
     },
 });
 
+userSchema.methods.public = function() {
+    let user = this.toObject(); // eslint-disable-line no-invalid-this
+    user = _.pick(user, ['email', 'firstName', 'lastName']);
+    return user;
+};
+
 userSchema.methods.toJSON = function() {
     const user = this;
     const userObj = user.toObject();

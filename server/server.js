@@ -3,6 +3,8 @@ const http = require('http');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const socketIO = require('socket.io');
+const passportSocketIO = require('passport.socketio');
+const cookieParser = require('cookie-parser');
 const MongoDBStore = require('connect-mongodb-session')(session);
 
 const config = require('./config');
@@ -36,8 +38,32 @@ app.use(passport.session());
 
 app.use(routes);
 
+io.use(passportSocketIO.authorize({
+    key: 'connect.sid',
+    secret: config.sessionSecret,
+    store, passport, cookieParser,
+}));
+
+const users = {};
+
 io.on('connection', (socket) => {
-    console.log('new connection');
+    console.log('received connection');
+    if (socket.request.user.logged_in) {
+        if (!users.hasOwnProperty(socket.request.user.email)) {
+            users[socket.request.user.email] = {};
+        }
+        socket.emit('auth', socket.request.user);
+        console.log(users);
+    }
+
+    socket.on('disconnect', () => {
+        if (socket.request.user.logged_in) {
+            if (users.hasOwnProperty(socket.request.user.email)) {
+                delete users[socket.request.user.email];
+            }
+            console.log(users);
+        }
+    });
 });
 
 server.listen(config.serverPort, () => {
