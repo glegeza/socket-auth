@@ -13,7 +13,7 @@ router.get(
     '/google/callback',
     googleAuthenticator,
     (req, res) => {
-        res.send(req.user);
+        res.redirect('http://localhost:3000');
     }
 );
 

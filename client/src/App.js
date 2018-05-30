@@ -1,53 +1,50 @@
 import React, {Component} from 'react';
-import './App.css';
+import {withRouter} from 'react-router-dom';
+import {connect} from 'react-redux';
 import io from 'socket.io-client';
-import axios from 'axios';
+
+import './App.css';
+
+import UpdateButton from './components/ui/UpdateButton';
+import LogoutButton from './components/ui/LogoutButton';
+import LoginButton from './components/ui/LoginButton';
+
+import * as actions from './actions';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isWaiting: true,
       socket: io('http://localhost:5000'),
     };
 
     let self = this;
     this.state.socket.on('auth', (auth) => {
       console.log('auth');
-      self.setState({...self.state, auth, isWaiting: false});
+      this.props.updateAuthStatus(auth);
     });
     this.state.socket.on('no_auth', (session) => {
       console.log('no_auth');
-      self.setState({...self.state, auth: null, isWaiting: false});
+      this.props.updateAuthStatus(false);
     });
   }
 
-  async logout() {
-    try {
-      await axios.delete('api/me/logout');
-      this.state.socket.emit('status');
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  // async componentDidMount() {
-  //   try {
-  //     await axios.get('api/auth/google');
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // }
-
   render() {
     let content = <p>Loading...</p>;
-    if (!this.state.isWaiting) {
+    if (this.props.auth !== null) {
       content = [<p key={1}>Ready</p>];
-      if (this.state.auth && this.state.auth.logged_in) {
-        content.push(<p key={2}>Logged in as {this.state.auth.email}</p>);
-        content.push(<button key={3} onClick={() => this.logout()}>Logout!</button>)
+      if (this.props.auth && this.props.auth.logged_in) {
+        content.push(<p key={2}>Logged in as {this.props.auth.email}</p>);
+        content.push(<LogoutButton
+          key={3}
+          action={this.props.logoutCurrentUser}
+          socket={this.state.socket}
+        />);
+        content.push(<UpdateButton key={4} socket={this.state.socket} action={this.props.requestAuthStatus} />);
       } else {
         content.push(<p key={2}>Not logged in</p>);
+        content.push(<LoginButton key={3} />);
+        content.push(<UpdateButton key={4} socket={this.state.socket} action={this.props.requestAuthStatus} />);
       }
     }
     return (
@@ -58,4 +55,8 @@ class App extends Component {
   }
 }
 
-export default App;
+const mapStateToProps = ({auth}) => {
+  return {auth};
+};
+
+export default withRouter(connect(mapStateToProps, actions)(App));
