@@ -7,7 +7,7 @@ router.get('/', isLoggedIn, (req, res) => {
 
 router.delete('/logout', isLoggedIn, (req, res) => {
     const user = req.user;
-    res.logout();
+    req.logout();
     res.send(user);
 });
 

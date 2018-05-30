@@ -1,34 +1,58 @@
 import React, {Component} from 'react';
-import logo from './logo.svg';
 import './App.css';
-import openSocket from 'socket.io-client';
+import io from 'socket.io-client';
+import axios from 'axios';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      socket: openSocket('http://localhost:5000'),
+      isWaiting: true,
+      socket: io('http://localhost:5000'),
     };
 
     let self = this;
     this.state.socket.on('auth', (auth) => {
-      self.setState({...self.state, auth});
+      console.log('auth');
+      self.setState({...self.state, auth, isWaiting: false});
+    });
+    this.state.socket.on('no_auth', (session) => {
+      console.log('no_auth');
+      self.setState({...self.state, auth: null, isWaiting: false});
     });
   }
 
+  async logout() {
+    try {
+      await axios.delete('api/me/logout');
+      this.state.socket.emit('status');
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // async componentDidMount() {
+  //   try {
+  //     await axios.get('api/auth/google');
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }
+
   render() {
-    if (this.state.auth) {
-      console.log(this.state.auth);
+    let content = <p>Loading...</p>;
+    if (!this.state.isWaiting) {
+      content = [<p key={1}>Ready</p>];
+      if (this.state.auth && this.state.auth.logged_in) {
+        content.push(<p key={2}>Logged in as {this.state.auth.email}</p>);
+        content.push(<button key={3} onClick={() => this.logout()}>Logout!</button>)
+      } else {
+        content.push(<p key={2}>Not logged in</p>);
+      }
     }
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        {content}
       </div>
     );
   }
