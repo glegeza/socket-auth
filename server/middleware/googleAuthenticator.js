@@ -2,5 +2,6 @@ const passport = require('passport');
 
 module.exports = passport.authenticate(
     'google',
-    {scope: ['email']}
+    {scope: ['email'],
+    prompt: 'select_account'}
 );
