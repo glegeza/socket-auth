@@ -8,6 +8,7 @@ import './App.css';
 import UpdateButton from './components/ui/UpdateButton';
 import LogoutButton from './components/ui/LogoutButton';
 import LoginButton from './components/ui/LoginButton';
+import TestButton from './components/ui/TestButton';
 
 import * as actions from './actions';
 
@@ -18,7 +19,6 @@ class App extends Component {
       socket: io('http://localhost:5000'),
     };
 
-    let self = this;
     this.state.socket.on('auth', (auth) => {
       console.log('auth');
       this.props.updateAuthStatus(auth);
@@ -41,6 +41,7 @@ class App extends Component {
           socket={this.state.socket}
         />);
         content.push(<UpdateButton key={4} socket={this.state.socket} action={this.props.requestAuthStatus} />);
+        content.push(<TestButton key={5} socket={this.state.socket} action={this.props.testUpdate} />);
       } else {
         content.push(<p key={2}>Not logged in</p>);
         content.push(<LoginButton key={3} />);

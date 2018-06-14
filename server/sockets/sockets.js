@@ -10,6 +10,8 @@ module.exports = (io, store) => {
 
         socket.use(authUpdater(socket, store, users));
 
+        let isUpdating = false;
+
         if (socket.request.user.logged_in) {
             if (!users.hasOwnProperty(socket.request.user.email)) {
                 users[socket.request.user.email] = {};
@@ -39,6 +41,18 @@ module.exports = (io, store) => {
                 socket.emit('no_auth');
             }
             console.log(users);
+        });
+
+        socket.on('update', () => {
+            console.log('Received fake update request');
+            if (socket.has_auth && !isUpdating) {
+                isUpdating = true;
+                console.log('Doin that false update');
+                setTimeout(() => {
+                    isUpdating = false;
+                    console.log('done fake updating');
+                }, 5000);
+            }
         });
 
         socket.on('disconnect', () => {

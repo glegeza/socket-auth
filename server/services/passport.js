@@ -50,9 +50,14 @@ passport.use(new GoogleStrategy({
         const lastName = profile.name.familyName;
 
         console.log('Creating new google user');
-        const newUser =
-            await new User({firstName, lastName, email, google: profile.id})
-                .save();
+        try {
+            console.log(profile);
+            const newUser =
+                await new User({firstName, lastName, email, google: profile.id})
+                    .save();
+        } catch (err) {
+            console.log('Error when creating new user', err);
+        }
 
         return done(null, newUser);
     },
