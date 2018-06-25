@@ -17,7 +17,7 @@ passport.deserializeUser(async (id, done) => {
         user = await User.findById(id);
         done(null, user.public());
     } catch (err) {
-        console.log('Failed to deserialize user');
+        console.log('Failed to deserialize user', err);
     }
 });
 
@@ -55,11 +55,10 @@ passport.use(new GoogleStrategy({
             const newUser =
                 await new User({firstName, lastName, email, google: profile.id})
                     .save();
+            return done(null, newUser);
         } catch (err) {
             console.log('Error when creating new user', err);
         }
-
-        return done(null, newUser);
     },
 ));
 

@@ -37,18 +37,31 @@ const userSchema = new Schema({
         unique: false,
         required: false,
     },
+    activeGame: {
+        type: Schema.Types.ObjectId,
+        ref: 'Game',
+        required: false,
+    },
+    finishedGames: {
+        type: [{
+            type: [Schema.Types.ObjectId],
+            ref: 'Game',
+        }],
+        default: [],
+    },
 });
 
 userSchema.methods.public = function() {
     let user = this.toObject(); // eslint-disable-line no-invalid-this
-    user = _.pick(user, ['email', 'firstName', 'lastName']);
+    user = _.pick(user, ['email', 'firstName', 'lastName', 'activeGame']);
     return user;
 };
 
 userSchema.methods.toJSON = function() {
     const user = this;
     const userObj = user.toObject();
-    const reduced = _.pick(userObj, ['email', 'firstName', 'lastName']);
+    const reduced =
+        _.pick(userObj, ['email', 'firstName', 'lastName', 'activeGame']);
     return {
         ...reduced,
         google: userObj.google && userObj.google !== '' ? true : false,
@@ -56,6 +69,15 @@ userSchema.methods.toJSON = function() {
         github: userObj.github && userObj.github !== '' ? true : false,
         local: userObj.password && userObj.password !== '' ? true : false,
     };
+};
+
+userSchema.statics.findByEmail = function(email, password) {
+    return User.findOne({email}).then((user) => {
+        if (!user) {
+            return Promise.reject('User with email not found');
+        }
+        return user;
+    });
 };
 
 userSchema.statics.findByCredentials = function(email, password) {

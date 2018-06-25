@@ -53,7 +53,15 @@ io.use(passportSocketIO.authorize({
     },
 }));
 
-require('./sockets/sockets')(io, store);
+const games = {};
+require('./sockets/sockets')(io, store, games);
+
+setInterval(() => {
+    Object.keys(games).forEach((v, i) => {
+        games[v].time = games[v].time + 1;
+        console.log(`${games[v].game.id}: ${games[v].time}`);
+    });
+}, 1000);
 
 server.listen(config.serverPort, () => {
     console.log(`Server in ${process.env.NODE_ENV} environment`);
