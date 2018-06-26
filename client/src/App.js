@@ -9,6 +9,7 @@ import UpdateButton from './components/ui/UpdateButton';
 import LogoutButton from './components/ui/LogoutButton';
 import LoginButton from './components/ui/LoginButton';
 import TestButton from './components/ui/TestButton';
+import BasicButton from './components/ui/BasicButton';
 
 import * as actions from './actions';
 
@@ -42,6 +43,9 @@ class App extends Component {
         />);
         content.push(<UpdateButton key={4} socket={this.state.socket} action={this.props.requestAuthStatus} />);
         content.push(<TestButton key={5} socket={this.state.socket} action={this.props.testUpdate} />);
+        content.push(<BasicButton key={6} socket={this.state.socket} action={this.props.startGame} text='Start' />);
+        content.push(<BasicButton key={7} socket={this.state.socket} action={this.props.endGame} text='End' />);
+        content.push(<BasicButton key={7} socket={this.state.socket} action={this.props.resumeGame} text='Resume' />);
       } else {
         content.push(<p key={2}>Not logged in</p>);
         content.push(<LoginButton key={3} />);

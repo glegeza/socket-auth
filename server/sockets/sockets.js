@@ -23,23 +23,6 @@ module.exports = (io, store, games) => {
             if (!users.hasOwnProperty(socket.request.user.email)) {
                 users[socket.request.user.email] = {};
             }
-            if (!socket.request.user.activeGame) {
-                game = new Game({
-                    isRunning: true,
-                    isComplete: false,
-                    timeRunning: 0,
-                });
-                await game.save();
-                const currentUser =
-                    await User.findByEmail(socket.request.user.email);
-                currentUser.activeGame = game.id;
-                socket.request.user.activeGame = game;
-                await currentUser.save();
-            } else {
-                console.log('found existing game');
-                game = await Game.findById(socket.request.user.activeGame);
-            }
-            games[game.id] = {game, time: game.timeRunning};
             console.log(
                 `Socket user is logged in as ${socket.request.user.email}`);
             socket.emit('auth', socket.request.user);
@@ -79,10 +62,53 @@ module.exports = (io, store, games) => {
             }
         });
 
-        socket.on('game_start', () => {
-            console.log('Received request to start game');
-            if (socket.has_auth) {
+        socket.on('game_resume', async () => {
+            console.log('Received request to resume game');
+            if (socket.has_auth && socket.request.user.activeGame && !game) {
+                console.log('found existing game');
+                game = await Game.findById(socket.request.user.activeGame);
+                game.isRunning = true;
+                await game.save();
+                games[game.id] = {game, time: game.timeRunning};
+            }
+        });
 
+        socket.on('game_start', async () => {
+            console.log('Received request to start game');
+            console.log(game, socket.request.user);
+            if (socket.has_auth && !socket.request.user.activeGame && !game) {
+                game = new Game({
+                    isRunning: true,
+                    isComplete: false,
+                    timeRunning: 0,
+                });
+                await game.save();
+                const currentUser =
+                    await User.findByEmail(socket.request.user.email);
+                currentUser.activeGame = game.id;
+                socket.request.user.activeGame = game;
+                await currentUser.save();
+                games[game.id] = {game, time: game.timeRunning};
+                console.log('Game started');
+            }
+        });
+
+        socket.on('game_end', async () => {
+            console.log('Received request to end game');
+            if (socket.has_auth && socket.request.user.activeGame && game) {
+                game.isRunning = false;
+                game.isComplete = true;
+                socket.request.user.activeGame = null;
+                game = await game.save();
+
+                let curUser =
+                    await User.findByEmail(socket.request.user.email);
+                curUser.activeGame = null;
+                curUser.finishedGames.push(game);
+                curUser = await curUser.save();
+                delete games[game.id];
+                game = null;
+                console.log('Ended game');
             }
         });
 
@@ -91,10 +117,11 @@ module.exports = (io, store, games) => {
                 if (users.hasOwnProperty(socket.request.user.email)) {
                     delete users[socket.request.user.email];
                 }
-                if (socket.request.user.activeGame) {
+                if (game && socket.request.user.activeGame) {
                     const gameState = games[game.id];
                     const gameDoc = await Game.findById(game.id);
                     gameDoc.timeRunning = gameState.time;
+                    gameDoc.isRunning = false;
                     await gameDoc.save();
                     delete games[game.id];
                     game = null;
