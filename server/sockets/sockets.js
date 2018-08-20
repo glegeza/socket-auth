@@ -44,7 +44,8 @@ module.exports = (io, store, games) => {
                 if (users.hasOwnProperty(socket.request.user.email)) {
                     delete users[socket.request.user.email];
                 }
-                console.log('User is not logged in');
+                console.log('User is not logged in, session ID',
+                    socket.request.sessionID);
                 socket.emit('no_auth');
             }
             console.log(users);
@@ -127,6 +128,9 @@ module.exports = (io, store, games) => {
                     game = null;
                 }
                 console.log(users);
+            } else {
+                console.log('Non-authed user disconnected with session ID',
+                    socket.request.sessionID);
             }
         });
     });
